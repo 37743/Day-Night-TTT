@@ -9,7 +9,6 @@ kivy.require('2.2.0')
 from kivy.app import App
 from kivy.uix.screenmanager import ScreenManager, FadeTransition
 import scripts.screens.pvp as PVPPage
-
 from config import settings
 
 class App(App):
@@ -17,7 +16,9 @@ class App(App):
         self.title = settings.VersionInfo.get_title()
         self.icon = "assets/project-TTT-icon.png"
         self.pvp = PVPPage.Game(name="Player VS Player")
+        # PVPPage.export_to_csv()
         self.screen_manager = ScreenManager(transition = FadeTransition())
+
         for screen in [self.pvp]:
             self.screen_manager.add_widget(screen)
         return self.screen_manager

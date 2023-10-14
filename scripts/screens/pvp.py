@@ -40,6 +40,12 @@ def insert_record(match_winner, match_history):
     cursor.execute(sql, val)
     sqlauth.tttdb.commit()
 
+def export_to_csv(filename="matches"):
+    ''' Export matches table from the database into a comma separated file'''
+    cursor = sqlauth.tttdb.cursor()
+    cursor.execute("SELECT * FROM matches INTO OUTFILE '{f}.csv';".format(f=filename))
+    sqlauth.tttdb.commit()
+
 # General purpose cell press button
 def cell_pressed(instance, cell, move):
     ''' Button that does a series of operations that evaluates
