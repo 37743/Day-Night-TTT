@@ -4,6 +4,7 @@
 # Tic-Tac-Toe Player VS Player
 # ---
 import numpy as np
+from kivy.app import App
 from kivy.uix.label import Label
 from kivy.core.window import Window
 from kivy.uix.screenmanager import Screen
@@ -46,6 +47,9 @@ def export_to_csv(filename="matches"):
     cursor.execute("SELECT * FROM matches INTO OUTFILE '{f}.csv';".format(f=filename))
     sqlauth.tttdb.commit()
 
+def back_released(instance):
+    App.get_running_app().screen_manager.current = "Main Menu"
+
 # General purpose cell press button
 def cell_pressed(instance, cell, move):
     ''' Button that does a series of operations that evaluates
@@ -68,6 +72,7 @@ def cell_pressed(instance, cell, move):
 
 # Creating all 9 buttons
 # TODO: CHANGE OBJECT MAKING INTO A LOOP INSTEAD.
+# TODO: RESET ALL ENTRIES AND THE MATRIX TO ALLOW REMATCHES
 C00 = Button(background_normal = "assets/empty-cell.png",
              background_disabled_normal = "assets/empty-cell.png")
 C00.bind(on_press=lambda instance:\
@@ -130,7 +135,7 @@ class Game(Screen, FloatLayout):
     def __init__(self, **kwargs):
         super(Game, self).__init__(**kwargs)
         with self.canvas.before:
-            self.bg = Rectangle(source = "assets/game-bg.png",
+            self.bg = Rectangle(source = "assets/menu-bg.png",
                                 size = self.size,
                                 pos = self.pos)
 
@@ -148,3 +153,12 @@ class Game(Screen, FloatLayout):
         for widget in cell_grid:
             self.ttt_grid.add_widget(widget)
         self.add_widget(self.ttt_grid)
+
+        # Back button
+        self.back_to_menu = Button(background_normal = "assets/back-icon.png",
+                                    background_down = "assets/back-icon-down.png",
+                                    pos_hint={"center_x": 0.1, "center_y": .92},
+                                    size_hint=(None,None),
+                                    size=(65,63))
+        self.back_to_menu.bind(on_release=back_released)
+        self.add_widget(self.back_to_menu)

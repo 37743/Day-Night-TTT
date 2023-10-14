@@ -7,8 +7,8 @@
      needed to be used globally.
      In the event of failure, kindly refer to
      the version info stated in the deployed app.'''
-settings = {"version": "0.0.1",
-            "day": 13,
+settings = {"version": "0.0.2",
+            "day": 14,
             "month": 10,
             "year": 2023}
 
@@ -20,4 +20,4 @@ class VersionInfo():
 
     def get_title():
         ''' Generate project title'''
-        return "Tic-Tac-Toe V.{v} - EJUST - {d}".format(v = settings['version'], d = VersionInfo.get_date())
+        return "Day&Night V.{v} - tic-tac-toe - {d}".format(v = settings['version'], d = VersionInfo.get_date())
