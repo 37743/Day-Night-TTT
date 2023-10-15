@@ -98,13 +98,13 @@ class Menu(Screen, FloatLayout):
         # Button Vertical Box
         self.buttonbox = BoxLayout(orientation = 'vertical',
                                    spacing = 10,
-                                   size_hint=(1,.25),
+                                   size_hint=(1,.3),
                                    pos_hint={"center_x": .75, "center_y": .4})
         
         # Play (PVP) Button
         pvpbut = Button(text="Player VS Player", color = "#f5f7f8",
                              outline_width=2, outline_color ="#3c808b",
-                            size_hint=(.5,.1), font_size=20,
+                            size_hint=(.5,.4), font_size=18,
                             background_normal=
                             "assets/button2.png",
                             background_down=
@@ -115,7 +115,7 @@ class Menu(Screen, FloatLayout):
         # Play (A.I.) Button
         pvabut = Button(text="Player VS A.I.", color = "#f5f7f8",
                              outline_width=2, outline_color ="#3c808b",
-                            size_hint=(.5,.1), font_size=20,
+                            size_hint=(.5,.4), font_size=18,
                             background_normal=
                             "assets/button2.png",
                             background_down=
@@ -126,7 +126,7 @@ class Menu(Screen, FloatLayout):
         # Leaderboard
         lbbut = Button(text="Leaderboard", color = "#f5f7f8",
                              outline_width=2, outline_color ="#3c808b",
-                            size_hint=(.5,.1), font_size=20,
+                            size_hint=(.5,.4), font_size=18,
                             background_normal=
                             "assets/button2.png",
                             background_down=

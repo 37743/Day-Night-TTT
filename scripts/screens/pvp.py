@@ -71,8 +71,16 @@ def cell_pressed(instance, move, cell):
             widget.disabled = True
         insert_record(board.get_result(), move_history)
 
+def reset_released(instance, grid):
+    ''' Resets the widgets on board back to empty cells'''
+    board.reset()
+    grid_iter = [i for i in grid.children]
+    for widget in grid_iter:
+        widget.background_normal = "assets/empty-cell.png"
+        widget.background_disabled_normal = "assets/empty-cell.png"
+        widget.disabled = False
+
 # Creating all 9 buttons
-# TODO: RESET ALL ENTRIES AND THE MATRIX TO ALLOW REMATCHES
 cells = np.array([Button(background_normal = "assets/empty-cell.png",
              background_disabled_normal = "assets/empty-cell.png")\
                 for i in range(9)])
@@ -110,15 +118,27 @@ class Game(Screen, FloatLayout):
                                    col_force_default = True, col_default_width = COL_WIDTH,
                                    rows = BOARD_X, cols = BOARD_Y,
                                    spacing = [SPACING_X,SPACING_Y], pos = ((COL_WIDTH+SPACING_X*(BOARD_X-1))/BOARD_X, -120))
+
         for widget in cells:
             self.ttt_grid.add_widget(widget)
         self.add_widget(self.ttt_grid)
 
         # Back button
-        self.back_to_menu = Button(background_normal = "assets/back-icon.png",
+        self.backbut = Button(background_normal = "assets/back-icon.png",
                                     background_down = "assets/back-icon-down.png",
                                     pos_hint={"center_x": 0.1, "center_y": .92},
                                     size_hint=(None,None),
-                                    size=(65,63))
-        self.back_to_menu.bind(on_release=back_released)
-        self.add_widget(self.back_to_menu)
+                                    size=(57,56))
+        self.backbut.bind(on_release=back_released)
+        self.add_widget(self.backbut)
+
+        # Reset button
+        self.resetbut = Button(background_normal = "assets/reset-icon.png",
+                                background_down = "assets/reset-icon-down.png",
+                                pos_hint={"center_x": 0.9, "center_y": .92},
+                                size_hint=(None,None),
+                                size=(57,56))
+        
+        self.resetbut.bind(on_release=lambda instance:\
+                            reset_released(instance, self.ttt_grid))
+        self.add_widget(self.resetbut)
