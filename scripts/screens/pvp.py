@@ -15,6 +15,7 @@ from kivy.uix.image import Image
 from kivy.graphics import Rectangle
 from scripts.ttt import (BOARD_X,BOARD_Y,BOARD_DIMENSIONS,MARK_X,state)
 from scripts.ttt import TTT
+from functools import partial
 import sqlauth
 
 ROW_HEIGHT = 100
@@ -51,7 +52,7 @@ def back_released(instance):
     App.get_running_app().screen_manager.current = "Main Menu"
 
 # General purpose cell press button
-def cell_pressed(instance, cell, move):
+def cell_pressed(instance, move, cell):
     ''' Button that does a series of operations that evaluates
     the current state of the match'''
     cell.background_disabled_normal = "assets/x-cell.png"\
@@ -66,62 +67,21 @@ def cell_pressed(instance, cell, move):
     if board.get_result() != 3:
         result = list(state.keys())[list(state.values()).index(board.get_result())]
         game_status.text = "Game Status: {s}".format(s=result)
-        for widget in cell_grid:
+        for widget in cells:
             widget.disabled = True
         insert_record(board.get_result(), move_history)
 
 # Creating all 9 buttons
-# TODO: CHANGE OBJECT MAKING INTO A LOOP INSTEAD.
 # TODO: RESET ALL ENTRIES AND THE MATRIX TO ALLOW REMATCHES
-C00 = Button(background_normal = "assets/empty-cell.png",
-             background_disabled_normal = "assets/empty-cell.png")
-C00.bind(on_press=lambda instance:\
-          cell_pressed(instance, C00, 0))
+cells = np.array([Button(background_normal = "assets/empty-cell.png",
+             background_disabled_normal = "assets/empty-cell.png")\
+                for i in range(9)])
 
-C10 = Button(background_normal = "assets/empty-cell.png",
-             background_disabled_normal = "assets/empty-cell.png")
-C10.bind(on_press=lambda instance:\
-          cell_pressed(instance, C10, 1))
+for i, obj in enumerate(cells):
+    obj.bind(on_press=partial(cell_pressed, cell=obj, move=i))
 
-C20 = Button(background_normal = "assets/empty-cell.png",
-             background_disabled_normal = "assets/empty-cell.png")
-C20.bind(on_press=lambda instance:\
-          cell_pressed(instance, C20, 2))
-
-C01 = Button(background_normal = "assets/empty-cell.png",
-             background_disabled_normal = "assets/empty-cell.png")
-C01.bind(on_press=lambda instance:\
-          cell_pressed(instance, C01, 3))
-
-C11 = Button(background_normal = "assets/empty-cell.png",
-             background_disabled_normal = "assets/empty-cell.png")
-C11.bind(on_press=lambda instance:\
-          cell_pressed(instance, C11, 4))
-
-C21 = Button(background_normal = "assets/empty-cell.png",
-             background_disabled_normal = "assets/empty-cell.png")
-C21.bind(on_press=lambda instance:\
-          cell_pressed(instance, C21, 5))
-
-C02 = Button(background_normal = "assets/empty-cell.png",
-            background_disabled_normal = "assets/empty-cell.png")
-C02.bind(on_press=lambda instance:\
-          cell_pressed(instance, C02, 6))
-
-C12 = Button(background_normal = "assets/empty-cell.png",
-             background_disabled_normal = "assets/empty-cell.png")
-C12.bind(on_press=lambda instance:\
-          cell_pressed(instance, C12, 7))
-
-C22 = Button(background_normal = "assets/empty-cell.png",
-             background_disabled_normal = "assets/empty-cell.png")
-C22.bind(on_press=lambda instance:\
-          cell_pressed(instance, C22, 8))
-
-cell_grid = np.array([C00,C10,C20,
-                    C01,C11,C21,
-                    C02,C12,C22])
-cell_grid_2d = cell_grid.reshape(BOARD_DIMENSIONS)
+    
+cells_2d = cells.reshape(BOARD_DIMENSIONS)
 
 game_status = Label(text = "Game Status: {s}".format(s='NOT_OVER'), color = (1,1,1), bold = True,
                                  outline_width = 2.5, outline_color = (0.1,0.1,0.1),
@@ -150,7 +110,7 @@ class Game(Screen, FloatLayout):
                                    col_force_default = True, col_default_width = COL_WIDTH,
                                    rows = BOARD_X, cols = BOARD_Y,
                                    spacing = [SPACING_X,SPACING_Y], pos = ((COL_WIDTH+SPACING_X*(BOARD_X-1))/BOARD_X, -120))
-        for widget in cell_grid:
+        for widget in cells:
             self.ttt_grid.add_widget(widget)
         self.add_widget(self.ttt_grid)
 

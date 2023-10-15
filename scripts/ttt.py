@@ -98,3 +98,8 @@ class TTT():
         TURN = TURN + 1
         # ^^^
         return TTT(temp_board)
+    
+    def reset(self):
+        ''' Reset to a blank board'''
+        self.board = np.copy(empty_board)
+        self.board_2d = self.board.reshape(BOARD_DIMENSIONS)

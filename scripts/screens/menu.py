@@ -4,18 +4,20 @@
 # Tic-Tac-Toe Menu
 # ---
 # --------
+import numpy as np
+import tkinter
 from kivy.app import App
 from kivy.uix.label import Label
 from kivy.core.window import Window
 from kivy.uix.screenmanager import Screen
 from kivy.uix.floatlayout import FloatLayout
-from kivy.uix.gridlayout import GridLayout
+# from kivy.uix.gridlayout import GridLayout
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.button import Button
 from kivy.uix.image import Image
 from kivy.graphics import Rectangle
 from kivy.animation import Animation
-from kivy.clock import Clock
+# from kivy.clock import Clock
 
 def button_swipe(widget):
     anim = Animation(pos=(800, 250), duration=2, t='in_cubic')
@@ -53,105 +55,52 @@ class Menu(Screen, FloatLayout):
         self.bind(size = self._update_bg, pos = self._update_bg)
 
         # Parallax Background Collection
-        bgsun = Image(source = "assets/menu-bg-sun.png",
-                            size_hint = (1,1),
-                            pos_hint={"center_x": .5, "center_y": .5})
-        self.floatbg1 = FloatLayout()
-        self.floatbg1.add_widget(bgsun)
-        float_effect(self.floatbg1, -10, 4)
+        bgnames = ['sun','cloudsback','cloudsfront',
+                   'mountains1','mountains2','mountains3',
+                   'lake','trees1','trees2',
+                   'trees3','trees4','gradient']
+        
+        floatvalues = [[-10,4],[0,0],[0,0],
+                       [9,7],[10,6],[11,5],
+                       [12,4],[13,4],[14,4],
+                       [11,4],[14,3],[0,0]]
 
-        self.floatbg2 = FloatLayout()
-        bgcb = Image(source = "assets/menu-bg-cloudsback.png",
-                            size_hint = (1,1),
-                            pos_hint={"center_x": .5, "center_y": .5})
-        self.floatbg2.add_widget(bgcb)
-        # float_effect(self.floatbg2, 7, 8)
+        bgfloat = [FloatLayout() for i in range(12)]
 
-        self.floatbg3 = FloatLayout()
-        bgcf = Image(source = "assets/menu-bg-cloudsfront.png",
+        bg = [Image(source = "assets/menu-bg-{t}.png".format(t=i),
                             size_hint = (1,1),
-                            pos_hint={"center_x": .5, "center_y": .5})
-        self.floatbg3.add_widget(bgcf)
-        # float_effect(self.floatbg3, 8, 8)
+                            pos_hint={"center_x": .5, "center_y": .5})\
+                        for i in bgnames]
 
-        self.floatbg4 = FloatLayout()
-        bgm1 = Image(source = "assets/menu-bg-mountains1.png",
-                            size_hint = (1,1),
-                            pos_hint={"center_x": .5, "center_y": .5})
-        self.floatbg4.add_widget(bgm1)
-        float_effect(self.floatbg4, 9, 7)
-
-        bgm2 = Image(source = "assets/menu-bg-mountains2.png",
-                            size_hint = (1,1),
-                            pos_hint={"center_x": .5, "center_y": .5})
-        self.floatbg5 = FloatLayout()
-        self.floatbg5.add_widget(bgm2)
-        float_effect(self.floatbg5, 10, 6)
-
-        self.floatbg6 = FloatLayout()
-        bgm3 = Image(source = "assets/menu-bg-mountains3.png",
-                            size_hint = (1,1),
-                            pos_hint={"center_x": .5, "center_y": .5})
-        self.floatbg6.add_widget(bgm3)
-        float_effect(self.floatbg6, 11, 5)
-
-        self.floatbg7 = FloatLayout()
-        bglk = Image(source = "assets/menu-bg-lake.png",
-                            size_hint = (1,1),
-                            pos_hint={"center_x": .5, "center_y": .5})
-        self.floatbg7.add_widget(bglk)
-        float_effect(self.floatbg7, 12, 4)
-
-        self.floatbg8 = FloatLayout()
-        bgt1 = Image(source = "assets/menu-bg-trees1.png",
-                            size_hint = (1,1),
-                            pos_hint={"center_x": .5, "center_y": .5})
-        self.floatbg8.add_widget(bgt1)
-        float_effect(self.floatbg8, 13, 4)
-
-        self.floatbg9 = FloatLayout()
-        bgt2 = Image(source = "assets/menu-bg-trees2.png",
-                            size_hint = (1,1),
-                            pos_hint={"center_x": .5, "center_y": .5})
-        self.floatbg9.add_widget(bgt2)
-        float_effect(self.floatbg9, 14, 4)
-
-        self.floatbg10 = FloatLayout() 
-        bgt3 = Image(source = "assets/menu-bg-trees3.png",
-                            size_hint = (1,1),
-                            pos_hint={"center_x": .5, "center_y": .5})
-        self.floatbg10.add_widget(bgt3)
-        float_effect(self.floatbg10, 11, 4)
-
-        self.floatbg11 = FloatLayout() 
-        bgt4 = Image(source = "assets/menu-bg-trees4.png",
-                            size_hint = (1,1),
-                            pos_hint={"center_x": .5, "center_y": .5})
-        self.floatbg11.add_widget(bgt4)
-        float_effect(self.floatbg11, 14, 3)
-
-        bggd = Image(source = "assets/menu-bg-gradient.png",
-                            size_hint = (1,1),
-                            pos_hint={"center_x": .5, "center_y": .5})
-        self.add_widget(bggd)
+        for i,obj in enumerate(bg):
+            bgfloat[i].add_widget(obj)
+            float_effect(bgfloat[i], floatvalues[i][0], floatvalues[i][1])
 
         # Game Logo
+        self.floatbox = FloatLayout()
         self.logo = Image(source="assets/logo.png",
                             size_hint = (1,1),
                             pos_hint={"center_x": .5, "center_y": .87})
+        self.floatbox.add_widget(self.logo)
         # Text Logo
         self.dlogo = Image(source="assets/subtitle.png",
                     size_hint = (.5,.5),
                     pos_hint={"center_x": .5, "center_y": .73})
-        self.floatbox = FloatLayout()
-        self.floatbox.add_widget(self.logo)
         self.floatbox.add_widget(self.dlogo)
+        
         float_effect(self.floatbox, 10, 2)
-        for widget in [self.floatbg1,self.floatbg2,self.floatbg3,
-                       self.floatbg4,self.floatbg5,self.floatbg6,
-                       self.floatbg7,self.floatbg8,self.floatbg9,
-                       self.floatbg10,self.floatbg11,self.floatbox]:
+        self.add_widget(self.floatbox)
+
+        for widget in bgfloat:
+            print(widget)
             self.add_widget(widget)
+
+        # Button Vertical Box
+        self.buttonbox = BoxLayout(orientation = 'vertical',
+                                   spacing = 10,
+                                   size_hint=(1,.25),
+                                   pos_hint={"center_x": .75, "center_y": .4})
+        
         # Play (PVP) Button
         pvpbut = Button(text="Player VS Player", color = "#f5f7f8",
                              outline_width=2, outline_color ="#3c808b",
@@ -161,6 +110,8 @@ class Menu(Screen, FloatLayout):
                             background_down=
                             "assets/button-down2.png")
         pvpbut.bind(on_release=pvp_released)
+        self.buttonbox.add_widget(pvpbut)
+
         # Play (A.I.) Button
         pvabut = Button(text="Player VS A.I.", color = "#f5f7f8",
                              outline_width=2, outline_color ="#3c808b",
@@ -169,6 +120,10 @@ class Menu(Screen, FloatLayout):
                             "assets/button2.png",
                             background_down=
                             "assets/button-down2.png")
+        #
+        self.buttonbox.add_widget(pvabut)
+        
+        # Leaderboard
         lbbut = Button(text="Leaderboard", color = "#f5f7f8",
                              outline_width=2, outline_color ="#3c808b",
                             size_hint=(.5,.1), font_size=20,
@@ -176,12 +131,7 @@ class Menu(Screen, FloatLayout):
                             "assets/button2.png",
                             background_down=
                             "assets/button-down2.png")
-        self.buttonbox = BoxLayout(orientation = 'vertical',
-                                   spacing = 10,
-                                   size_hint=(1,.25),
-                                   pos_hint={"center_x": .75, "center_y": .4})
-        self.buttonbox.add_widget(pvpbut)
-        self.buttonbox.add_widget(pvabut)
+        #
         self.buttonbox.add_widget(lbbut)
 
         self.add_widget(self.buttonbox)
@@ -191,4 +141,5 @@ class Menu(Screen, FloatLayout):
                              color = "#f5f7f8",
                              outline_width=1, outline_color = "#3c808b",
                              pos_hint={"center_x": .5, "center_y": .04}, font_size=11)
+        #
         self.add_widget(self.footer)
