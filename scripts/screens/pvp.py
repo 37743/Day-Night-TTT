@@ -73,6 +73,7 @@ def cell_pressed(instance, move, cell):
 
 def reset_released(instance, grid):
     ''' Resets the widgets on board back to empty cells'''
+    print("\nRESET PRESSED!\n")
     board.reset()
     grid_iter = [i for i in grid.children]
     for widget in grid_iter:
