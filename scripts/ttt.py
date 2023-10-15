@@ -11,9 +11,9 @@ BOARD_Y = 3
 BOARD_DIMENSIONS = (BOARD_X, BOARD_Y)
 # Current state of the game.
 state = {"DRAW" : 0,
-        "X_WIN" : 1,
-        "O_WIN" : 2,
-        "NOT_OVER" : 3}
+        "X WON" : 1,
+        "O WON" : 2,
+        "ONGOING" : 3}
 
 # X/O Symbols to populate the matrix with.
 MARK_EMPTY = 0
@@ -43,7 +43,7 @@ class TTT():
                 return sym
         if MARK_EMPTY not in self.board_2d:
             return state['DRAW']
-        return state['NOT_OVER']
+        return state['ONGOING']
     
     def get_valid_indexes(self):
         ''' Get all valid indexes that could potentially be marked'''
@@ -52,7 +52,7 @@ class TTT():
     
     def is_over(self):
         ''' Returns True if game has ended'''
-        return self.get_result() != state['NOT_OVER']
+        return self.get_result() != state['ONGOING']
     
     def check_rows_cols_diags(self, sym):
         ''' Check if there exists a winning condition for symbol \'sym\' '''

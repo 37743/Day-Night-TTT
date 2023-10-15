@@ -92,7 +92,6 @@ class Menu(Screen, FloatLayout):
         self.add_widget(self.floatbox)
 
         for widget in bgfloat:
-            print(widget)
             self.add_widget(widget)
 
         # Button Vertical Box

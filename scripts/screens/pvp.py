@@ -66,7 +66,7 @@ def cell_pressed(instance, move, cell):
     cell.disabled = True
     if board.get_result() != 3:
         result = list(state.keys())[list(state.values()).index(board.get_result())]
-        game_status.text = "Game Status: {s}".format(s=result)
+        game_status.text = "Game Status: {s}!".format(s=str(result))
         for widget in cells:
             widget.disabled = True
         insert_record(board.get_result(), move_history)
@@ -79,6 +79,9 @@ def reset_released(instance, grid):
         widget.background_normal = "assets/empty-cell.png"
         widget.background_disabled_normal = "assets/empty-cell.png"
         widget.disabled = False
+    game_status.text = "Game Status: {s}!".format(s="ONGOING")
+    global move_history
+    move_history = ""
 
 # Creating all 9 buttons
 cells = np.array([Button(background_normal = "assets/empty-cell.png",
@@ -91,9 +94,9 @@ for i, obj in enumerate(cells):
     
 cells_2d = cells.reshape(BOARD_DIMENSIONS)
 
-game_status = Label(text = "Game Status: {s}".format(s='NOT_OVER'), color = (1,1,1), bold = True,
-                                 outline_width = 2.5, outline_color = (0.1,0.1,0.1),
-                                 font_size = 14, pos = (0,200))
+game_status = Label(text = "Game Status: {s}!".format(s="ONGOING"), color = "#f5f7f8", bold = True,
+                                 outline_width = 2.5, outline_color = "#3c808b",
+                                 font_size = 18, pos = (0,210))
 
 class Game(Screen, FloatLayout):
     def _update_bg(self, instance, value):
