@@ -13,7 +13,7 @@ from kivy.uix.gridlayout import GridLayout
 from kivy.uix.button import Button
 from kivy.uix.image import Image
 from kivy.graphics import Rectangle
-from scripts.ttt import (BOARD_X,BOARD_Y,BOARD_DIMENSIONS,MARK_X,state)
+from scripts.ttt import (BOARD_X,BOARD_Y,BOARD_DIMENSIONS,state)
 from scripts.ttt import TTT
 from functools import partial
 import sqlauth
@@ -31,8 +31,8 @@ def reSize(*args):
 
 Window.bind(on_resize = reSize)
 # New board
-board = TTT()
-move_history_pvp = ""
+boardai = TTT()
+move_history_pva = ""
 
 def insert_record(match_winner, match_history):
     ''' Inserts match results as a new entry to the SQL server'''
@@ -49,40 +49,59 @@ def export_to_csv(filename="matches"):
     sqlauth.tttdb.commit()
 
 def back_released(instance):
+    ''' Back button method that moves the user to the main menu when called'''
     App.get_running_app().screen_manager.current = "Main Menu"
 
 # General purpose cell press button
 def cell_pressed(instance, move, cell):
-    ''' Button that does a series of operations that evaluates
-    the current state of the match'''
-    cell.background_disabled_normal = "assets/x-cell.png"\
-        if board.get_player() == MARK_X else "assets/o-cell.png"
-    cell.background_disabled_down = "assets/x-cell-50.png"\
-        if board.get_player() == MARK_X else "assets/o-cell-50.png"
-    # print("TURN = {t}, MOVE = {m}, PLAYER = {p}".format(t=board.get_turn(),m=move,p=board.get_player()))
-    global move_history_pvp
-    move_history_pvp = move_history_pvp + "{t}. P{p}".format(t=board.get_turn(), p=board.get_player()) + ":C{c} ".format(c=move)
-    board.play(move)
+    ''' Button that does a series of operations that evaluates the current state of the match'''
+    boardai.play(move, pvp=False)
+    cell.background_disabled_normal = "assets/x-cell.png"
+    cell.background_disabled_down = "assets/x-cell-50.png"
+    global move_history_pva
+    move_history_pva = move_history_pva + "{t}. P{p}".format(t=boardai.get_turn(pvp=False),\
+                            p=boardai.get_player(pvp=False)) + ":C{c} ".format(c=move)
     cell.disabled = True
-    if board.get_result() != 3:
-        result = list(state.keys())[list(state.values()).index(board.get_result())]
+    # A.I. plays if game has not ended.
+    if not(check_results(boardai, cells, move_history_pva)):
+        ai_cell_pressed(board=boardai, cells=cells)
+
+def ai_cell_pressed(board, cells):
+    ''' A.I. plays their move on the GUI'''
+    board.play_ai()
+    cell = board.get_ai_cell()
+    cells[cell].background_disabled_normal = "assets/o-cell.png"
+    cells[cell].background_disabled_down = "assets/o-cell-50.png"
+    global move_history_pva
+    move_history_pva = move_history_pva + "{t}. P{p}".format(t=boardai.get_turn(pvp=False),\
+                            p=boardai.get_player(pvp=False)) + ":C{c} ".format(c=cell)
+    cells[cell].disabled = True
+    check_results(board, cells, move_history_pva)
+
+
+def check_results(boardai, cells, move_history_pva):
+    ''' Returns True if game has ended and calls the send results method to the SQL server'''
+    if boardai.get_result() != 3:
+        result = list(state.keys())[list(state.values()).index(boardai.get_result())]
         game_status.text = "Game Status: {s}!".format(s=str(result))
         for widget in cells:
             widget.disabled = True
-        insert_record(board.get_result(), move_history_pvp)
+        insert_record(boardai.get_result(), move_history_pva)
+        return True
+    return False
 
 def reset_released(instance, grid):
     ''' Resets the widgets on board back to empty cells'''
     print("\nRESET PRESSED!\n")
-    board.reset()
+    boardai.reset(pvp=False)
     grid_iter = [i for i in grid.children]
     for widget in grid_iter:
         widget.background_normal = "assets/empty-cell.png"
         widget.background_disabled_normal = "assets/empty-cell.png"
         widget.disabled = False
     game_status.text = "Game Status: {s}!".format(s="ONGOING")
-    global move_history_pvp
-    move_history_pvp = ""
+    global move_history_pva
+    move_history_pva = ""
 
 # Creating all 9 buttons
 cells = np.array([Button(background_normal = "assets/empty-cell.png",
@@ -95,8 +114,8 @@ for i, obj in enumerate(cells):
     
 cells_2d = cells.reshape(BOARD_DIMENSIONS)
 
-game_status = Label(text = "Game Status: {s}!".format(s="ONGOING"), color = "#f5f7f8", bold = True,
-                                 outline_width = 2.5, outline_color = "#3c808b",
+game_status = Label(text = "Game Status: {s}!".format(s="ONGOING"), color = "#f5f7f8",
+                                 bold = True, outline_width = 2.5, outline_color = "#3c808b",
                                  font_size = 18, pos = (0,210))
 
 class Game(Screen, FloatLayout):
@@ -119,9 +138,10 @@ class Game(Screen, FloatLayout):
         self.add_widget(self.grid_bg)
         self.add_widget(game_status)
         self.ttt_grid = GridLayout(row_force_default = True, row_default_height = ROW_HEIGHT,
-                                   col_force_default = True, col_default_width = COL_WIDTH,
-                                   rows = BOARD_X, cols = BOARD_Y,
-                                   spacing = [SPACING_X,SPACING_Y], pos = ((COL_WIDTH+SPACING_X*(BOARD_X-1))/BOARD_X, -120))
+                                col_force_default = True, col_default_width = COL_WIDTH,
+                                rows = BOARD_X, cols = BOARD_Y,
+                                spacing = [SPACING_X,SPACING_Y],
+                                pos = ((COL_WIDTH+SPACING_X*(BOARD_X-1))/BOARD_X, -120))
 
         for widget in cells:
             self.ttt_grid.add_widget(widget)

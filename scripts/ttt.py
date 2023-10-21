@@ -6,6 +6,7 @@
 import numpy as np
 import collections
 
+AI_CELL = 0
 BOARD_X = 3
 BOARD_Y = 3
 BOARD_DIMENSIONS = (BOARD_X, BOARD_Y)
@@ -20,11 +21,50 @@ MARK_EMPTY = 0
 MARK_X = 1
 MARK_O = 2
 # Current turn, X always starts first.
-TURN = 1
+TURN_PVP = 1
+TURN_PVA = 1
 
 empty_board = np.zeros(BOARD_DIMENSIONS, dtype = int).flatten()
 # print(empty_board)
 
+def pvp_mod(reset=False):
+    global TURN_PVP
+    if (reset):
+        TURN_PVP = 1
+    else:
+        TURN_PVP = TURN_PVP + 1
+
+
+def pva_mod(reset=False):
+    global TURN_PVA
+    if (reset):
+        TURN_PVA = 1
+    else:
+        TURN_PVA = TURN_PVA + 1
+
+def optimal_move(board, cturn, depth=0):
+    ''' Find the best possible move for the A.I.
+        TODO: FIX THIS PART ~~> TEMPORARILY RANDOM.'''
+    bestmove = np.random.choice(board.get_valid_indices(), 1)[0]
+    if (depth<10):
+        for move in board.get_valid_indices():
+            # Test if A.I. move is best
+            depth = depth+1
+            bestmove = optimal_move(board, cturn, depth)
+            player = MARK_O if (cturn%2 == 0) else MARK_X
+            # Try A.I. move
+            board.board[move] = player
+            # Change turn to IRL player
+            cturn = cturn+1
+            # Revert A.I. move
+            tempresult = board.get_result()
+            board.board[move] = 0
+            # Check if A.I. player wins on this move.
+            if (player==MARK_O and (tempresult==state['O WON'])):
+                bestmove = move
+                break
+    return bestmove
+    
 class TTT():
     ''' Class that contains Tic-Tac-Toe's game logic'''
     def __init__(self, new_board=None):
@@ -45,10 +85,9 @@ class TTT():
             return state['DRAW']
         return state['ONGOING']
     
-    def get_valid_indexes(self):
+    def get_valid_indices(self):
         ''' Get all valid indexes that could potentially be marked'''
-        return ([i for i in range(self.board.size)
-                 if self.board[i] == MARK_EMPTY])
+        return ([i for i in range(self.board.size) if self.board[i] == MARK_EMPTY])
     
     def is_over(self):
         ''' Returns True if game has ended'''
@@ -78,31 +117,47 @@ class TTT():
             return True
         return False
     
-    def get_player(self):
+    def get_player(self, pvp=True):
         ''' Returns which player's turn'''
         # X always starts first
-        return MARK_X if (TURN%2 != 0) else MARK_O
+        turn = TURN_PVP if pvp else TURN_PVA
+        return MARK_X if (turn%2 != 0) else MARK_O
     
-    def get_turn(self):
+    def get_turn(self, pvp=True):
         ''' Returns count of turns'''
-        return TURN
+        return TURN_PVP if pvp else TURN_PVA
     
-    def play(self, move):
+    def play(self, move, pvp=True):
         ''' Marks the board with given index if it is a valid move'''
         temp_board = self.board
-        if move not in self.get_valid_indexes():
+        if move not in self.get_valid_indices():
             return TTT(temp_board)
         temp_board[move] = self.get_player()
-        # TO DO: Multithreading, locking this part of the code vvv
-        global TURN
-        TURN = TURN + 1
-        # ^^^
+        pvp_mod() if pvp else pva_mod()
         return TTT(temp_board)
     
-    def reset(self):
+    def play_ai(self):
+        ''' A.I. plays generates moves recursively and picks the best option'''
+        aimove = optimal_move(self, self.get_turn(pvp=False))
+        global AI_CELL
+        AI_CELL = aimove
+        # It's O but its so I can change this later to reverse play order.
+        # vvv
+        self.board[aimove] = self.get_player(pvp=False)
+        # Turn gets incremented in the IRL player's code.
+        pva_mod()
+        return TTT(self.board)
+            
+    def get_ai_cell(self):
+        global AI_CELL
+        return AI_CELL
+
+    def reset(self, pvp=True):
         ''' Reset to a blank board'''
         self.board = np.copy(empty_board)
         self.board_2d = self.board.reshape(BOARD_DIMENSIONS)
-        global TURN
-        TURN = 1
+        if (pvp):
+            pvp_mod(reset=True)
+        else:
+            pva_mod(reset=True)
         return

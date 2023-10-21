@@ -4,8 +4,6 @@
 # Tic-Tac-Toe Menu
 # ---
 # --------
-import numpy as np
-import tkinter
 from kivy.app import App
 from kivy.uix.label import Label
 from kivy.core.window import Window
@@ -32,12 +30,18 @@ def float_effect(widget, yn, d):
 
 def pvp_released(instance):
     # button_swipe(instance)
-    # Clock.schedule_once(change_to_pvp, 2)
-    change_to_pvp()
+    # Clock.schedule_once(change_to_screen, 2)
+    change_to_screen(screen="Player VS Player")
+    return
+
+def pva_released(instance):
+    # button_swipe(instance)
+    # Clock.schedule_once(change_to_screen, 2)
+    change_to_screen(screen="Player VS AI")
     return 
 
-def change_to_pvp(*args):
-    App.get_running_app().screen_manager.current = "Player VS Player"
+def change_to_screen(*args, screen):
+    App.get_running_app().screen_manager.current = screen
     return
 
 class Menu(Screen, FloatLayout):
@@ -120,6 +124,7 @@ class Menu(Screen, FloatLayout):
                             background_down=
                             "assets/button-down2.png")
         #
+        pvabut.bind(on_release=pva_released)
         self.buttonbox.add_widget(pvabut)
         
         # Leaderboard
