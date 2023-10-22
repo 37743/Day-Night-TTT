@@ -63,6 +63,9 @@ def optimal_move(board, cturn, depth=0):
             if (player==MARK_O and (tempresult==state['O WON'])):
                 bestmove = move
                 break
+            if (player==MARK_X and (tempresult==state['X WON'])):
+                bestmove = move
+                break
     return bestmove
     
 class TTT():
