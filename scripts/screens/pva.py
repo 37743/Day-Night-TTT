@@ -23,7 +23,7 @@ ROW_HEIGHT = 100
 COL_WIDTH = 100
 SPACING_X = 10
 SPACING_Y = 10
-TYPE = ''
+TYPE = 'RND'
 
 Window.size = (400, 500)
 
@@ -107,6 +107,7 @@ def reset_released(instance, grid):
 
 def type_released(instance, type):
     TYPE = type
+    ai_solve_mode.text = "Mode: {s}!".format(s=TYPE)
     return
 
 # Creating all 9 buttons
@@ -124,6 +125,9 @@ game_status = Label(text = "Game Status: {s}!".format(s="ONGOING"), color = "#f5
                                  bold = True, outline_width = 2.5, outline_color = "#3c808b",
                                  font_size = 18, pos = (0,210))
 
+ai_solve_mode = Label(text = "Mode: {s}!".format(s=TYPE), color = "#f5f7f8",
+                                 bold = True, outline_width = 2.5, outline_color = "#3c808b",
+                                 font_size = 18, pos = (0,230))
 class Game(Screen, FloatLayout):
     def _update_bg(self, instance, value):
         self.bg.pos = instance.pos
@@ -143,6 +147,7 @@ class Game(Screen, FloatLayout):
                                  pos=(0,-30))
         self.add_widget(self.grid_bg)
         self.add_widget(game_status)
+        self.add_widget(ai_solve_mode)
         self.ttt_grid = GridLayout(row_force_default = True, row_default_height = ROW_HEIGHT,
                                 col_force_default = True, col_default_width = COL_WIDTH,
                                 rows = BOARD_X, cols = BOARD_Y,
@@ -174,7 +179,7 @@ class Game(Screen, FloatLayout):
         self.add_widget(self.resetbut)       
 
         # Type button(s)
-        buts = np.array([Button(text=type[0], color = "#f5f7f8",
+        buts = np.array([Button(text=type, color = "#f5f7f8",
                             outline_width=2, outline_color ="#3c808b",
                             background_normal = "assets/button-icon.png",
                             background_down = "assets/button-icon-down.png",
@@ -183,7 +188,7 @@ class Game(Screen, FloatLayout):
                 for type in ['RND','DFS','BFS','UCS']])
 
         for i, obj in enumerate(buts):
-            obj.bind(on_release=partial(type_released, type=i))
+            obj.bind(on_release=partial(type_released, type=obj.text))
 
         self.typebox = BoxLayout(orientation='horizontal',
                                  pos_hint={'center_x':0.71, 'center_y':0.5})
