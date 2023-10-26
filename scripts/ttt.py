@@ -4,6 +4,7 @@
 # Tic-Tac-Toe Board Code
 # ---
 import numpy as np
+import scripts.datastructures.stack as stack
 import collections
 
 AI_CELL = 0
@@ -41,33 +42,68 @@ def pva_mod(reset=False):
         TURN_PVA = 1
     else:
         TURN_PVA = TURN_PVA + 1
-
-def optimal_move(board, cturn, depth=0):
-    ''' Find the best possible move for the A.I.
-        TODO: FIX THIS PART ~~> TEMPORARILY RANDOM.'''
-    bestmove = np.random.choice(board.get_valid_indices(), 1)[0]
+# ----------------------------------
+# RANDOM IMPLEMENTATION
+# def optimal_move(board, cturn, depth=0):
+#     ''' Find the best possible move for the A.I.
+#         TODO: FIX THIS PART ~~> TEMPORARILY RANDOM.'''
+#     bestmove = np.random.choice(board.get_valid_indices(), 1)[0]
+#     if (depth<10):
+#         for move in board.get_valid_indices():
+#             # Test if A.I. move is best
+#             depth = depth+1
+#             bestmove = optimal_move(board, cturn, depth)
+#             player = MARK_O if (cturn%2 == 0) else MARK_X
+#             # Try A.I. move
+#             board.board[move] = player
+#             # Change turn to IRL player
+#             cturn = cturn+1
+#             # Revert A.I. move
+#             tempresult = board.get_result()
+#             board.board[move] = 0
+#             # Check if A.I. player wins on this move.
+#             if (player==MARK_O and (tempresult==state['O WON']) or\
+#                      (player==MARK_X and (tempresult==state['X WON']))):
+#                 bestmove = move
+#                 break
+#     return bestmove
+# ----------------------------------
+# DEPTH FIRST SEARCH:
+def dfs_move(boards, cboard, cturn, best_move, pbest_move, depth=0):
     if (depth<10):
-        for move in board.get_valid_indices():
-            # Test if A.I. move is best
-            depth = depth+1
-            bestmove = optimal_move(board, cturn, depth)
-            player = MARK_O if (cturn%2 == 0) else MARK_X
-            # Try A.I. move
-            board.board[move] = player
-            # Change turn to IRL player
+        for mv in cboard.get_valid_indices():
+            depth = depth + 1
+            player = MARK_O if (cturn%2 ==0) else MARK_X
+            cboard.board[mv] = player
+            boards.push(cboard, mv)
             cturn = cturn+1
-            # Revert A.I. move
-            tempresult = board.get_result()
-            board.board[move] = 0
-            # Check if A.I. player wins on this move.
-            if (player==MARK_O and (tempresult==state['O WON'])):
-                bestmove = move
-                break
-            if (player==MARK_X and (tempresult==state['X WON'])):
-                bestmove = move
-                break
-    return bestmove
-    
+            temp_result = boards.top().get_result()
+            pbest_move = dfs_move(boards, boards.top(), cturn, best_move, pbest_move)
+            cboard.board[mv] = 0
+            if (player==MARK_O and (temp_result==state['O WON']) or\
+                (player==MARK_X and (temp_result==state['X WON']))):
+                return mv
+        while not (boards.is_empty()):
+            pbest_move = best_move
+            best_move = boards.pop()
+    return pbest_move
+
+def optimal_move(board, cturn):
+    boards = stack.Stack()
+    boards.push(board)
+    best_move = dfs_move(boards, boards.top(), cturn, best_move=0, pbest_move=0)
+    return best_move
+# ----------------------------------
+# BREADTH FIRST SEARCH:
+# def bfs_move(boards):
+#     pass
+
+# def optimal_move(board, cturn):
+#     boards = queue.Queue()
+#     boards.push(board)
+#     best_move = bfs_move(boards, boards.top(), cturn, best_move=0, pbest_move=0)
+#     return best_move
+# ----------------------------------
 class TTT():
     ''' Class that contains Tic-Tac-Toe's game logic'''
     def __init__(self, new_board=None):
@@ -79,6 +115,9 @@ class TTT():
         self.board_2d = self.board.reshape(BOARD_DIMENSIONS)
         print(self.board_2d)
     
+    def __str__(self):
+        return str(self.board)
+
     def get_result(self):
         ''' Get current state of the match'''
         for sym in[MARK_X,MARK_O]:
