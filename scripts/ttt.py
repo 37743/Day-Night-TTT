@@ -4,6 +4,9 @@
 # Tic-Tac-Toe Board Code
 # ---
 import numpy as np
+import scripts.datastructures.stack as stack
+import scripts.datastructures.queue as queue
+import scripts.analysis as analysis
 import collections
 
 AI_CELL = 0
@@ -28,46 +31,116 @@ empty_board = np.zeros(BOARD_DIMENSIONS, dtype = int).flatten()
 # print(empty_board)
 
 def pvp_mod(reset=False):
+    ''' Reset PVP turn counter or increment it'''
     global TURN_PVP
     if (reset):
         TURN_PVP = 1
     else:
-        TURN_PVP = TURN_PVP + 1
+        TURN_PVP += 1
 
 
 def pva_mod(reset=False):
+    ''' Reset PVP turn counter or increment it'''
     global TURN_PVA
     if (reset):
         TURN_PVA = 1
     else:
-        TURN_PVA = TURN_PVA + 1
+        TURN_PVA += 1
 
-def optimal_move(board, cturn, depth=0):
-    ''' Find the best possible move for the A.I.
-        TODO: FIX THIS PART ~~> TEMPORARILY RANDOM.'''
+def rand_optimal_move(board, cturn, depth=0):
+    ''' Find the best possible move for the A.I. DEFAULT: RANDOM'''
     bestmove = np.random.choice(board.get_valid_indices(), 1)[0]
     if (depth<10):
         for move in board.get_valid_indices():
             # Test if A.I. move is best
             depth = depth+1
-            bestmove = optimal_move(board, cturn, depth)
+            bestmove = rand_optimal_move(board, cturn, depth)
             player = MARK_O if (cturn%2 == 0) else MARK_X
             # Try A.I. move
             board.board[move] = player
             # Change turn to IRL player
-            cturn = cturn+1
+            cturn += 1
             # Revert A.I. move
             tempresult = board.get_result()
             board.board[move] = 0
             # Check if A.I. player wins on this move.
-            if (player==MARK_O and (tempresult==state['O WON'])):
-                bestmove = move
-                break
-            if (player==MARK_X and (tempresult==state['X WON'])):
+            if (player==MARK_O and (tempresult==state['O WON']) or\
+                     (player==MARK_X and (tempresult==state['X WON']))):
                 bestmove = move
                 break
     return bestmove
-    
+
+def dfs_move(boards, cboard, cturn, best_move, pbest_move):
+    ''' Function for best move using Breadth-First-Search technique'''
+    for mv in cboard.get_valid_indices():
+        player = MARK_O if (cturn%2 ==0) else MARK_X
+        cboard.board[mv] = player
+        boards.push(cboard, mv)
+        cturn += 1
+        temp_result = boards.top().get_result()
+        pbest_move = dfs_move(boards, boards.top(), cturn, best_move, pbest_move)
+        cboard.board[mv] = 0
+        if (player==MARK_O and (temp_result==state['O WON']) or\
+            (player==MARK_X and (temp_result==state['X WON']))):
+            return mv
+    while not (boards.is_empty()):
+        # Previous best move, since at last step we pop the parent node.
+        pbest_move = best_move
+        best_move = boards.pop()
+    return pbest_move
+
+def dfs_optimal_move(board, cturn):
+    ''' Find the best optimal move using Breadth-First-Search technique'''
+    boards = stack.Stack()
+    boards.push(board)
+    best_move = dfs_move(boards, boards.top(), cturn, best_move=0, pbest_move=0)
+    return best_move
+
+def bfs_move(boards, cboard, cturn, best_move, dmove=(0,0)):
+    ''' Function for best move using Breadth-First-Search technique'''
+    dmove[0] += 1 # <- Depth counter
+    for mv in cboard.get_valid_indices():
+        player = MARK_O if (cturn%2 ==0) else MARK_X
+        cboard.board[mv] = player
+        boards.enqueue(cboard, mv)
+        if dmove[0] == 2: # At depth 2 are the child nodes of the current parent
+            dmove[1] = mv # <- Move is stored here
+        cturn += 1
+        best_move = bfs_move(boards, boards.top(), cturn, best_move, dmove)
+        cboard.board[mv] = 0
+        while not (boards.is_empty()): 
+            ''' T.A. NOTE: Everything in this current queue is popped until a win move is found
+             IF found, return the child of the top-most parent of the tree. (move to be made)'''
+            boards.dequeue() # Pops parent then checks for win condition.
+            temp_result = boards.top().get_result()
+            if (player==MARK_O and (temp_result==state['O WON']) or\
+                (player==MARK_X and (temp_result==state['X WON']))):
+                return dmove[1]
+    return best_move
+
+def bfs_optimal_move(board, cturn):
+    ''' Find the best optimal move using Breadth-First-Search technique'''
+    boards = queue.Queue()
+    boards.enqueue(board)
+    best_move = bfs_move(boards, boards.top(), cturn, best_move=0)
+    return best_move
+
+def ucs_move(board, cost):
+    ''' Function for best move using Uniform-Cost-Search technique'''
+    min_value = 999
+    best_move = 0
+    for idx in board.get_valid_indices():
+        if (cost[idx] < min_value):
+            best_move = idx
+        min_value = min(min_value, cost[idx])
+    return best_move
+            
+def ucs_optimal_move(board):
+    ''' Find the best optimal move using Uniform-Cost-Search technique'''
+    cost = analysis.analyse_board(board)
+    best_move = ucs_move(board, cost)
+    return best_move
+
 class TTT():
     ''' Class that contains Tic-Tac-Toe's game logic'''
     def __init__(self, new_board=None):
@@ -79,6 +152,9 @@ class TTT():
         self.board_2d = self.board.reshape(BOARD_DIMENSIONS)
         print(self.board_2d)
     
+    def __str__(self):
+        return str(self.board)
+
     def get_result(self):
         ''' Get current state of the match'''
         for sym in[MARK_X,MARK_O]:
@@ -139,9 +215,18 @@ class TTT():
         pvp_mod() if pvp else pva_mod()
         return TTT(temp_board)
     
-    def play_ai(self):
+    def play_ai(self, type='UCS'):
         ''' A.I. plays generates moves recursively and picks the best option'''
-        aimove = optimal_move(self, self.get_turn(pvp=False))
+        # Choose search/solve technique:
+        match type:
+            case 'DFS':
+                aimove = dfs_optimal_move(self, self.get_turn(pvp=False))
+            case 'BFS':
+                aimove = rand_optimal_move(self, self.get_turn(pvp=False))
+            case 'UCS': # DEFAULT
+                aimove = ucs_optimal_move(self)
+            case _: # DEFAULT
+                aimove = rand_optimal_move(self, self.get_turn(pvp=False))
         global AI_CELL
         AI_CELL = aimove
         # It's O but its so I can change this later to reverse play order.
