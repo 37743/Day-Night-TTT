@@ -222,7 +222,7 @@ class TTT():
             case 'DFS':
                 aimove = dfs_optimal_move(self, self.get_turn(pvp=False))
             case 'BFS':
-                aimove = rand_optimal_move(self, self.get_turn(pvp=False))
+                aimove = bfs_optimal_move(self, self.get_turn(pvp=False))
             case 'UCS': # DEFAULT
                 aimove = ucs_optimal_move(self)
             case _: # DEFAULT

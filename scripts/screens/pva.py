@@ -10,6 +10,7 @@ from kivy.core.window import Window
 from kivy.uix.screenmanager import Screen
 from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.gridlayout import GridLayout
+from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.button import Button
 from kivy.uix.image import Image
 from kivy.graphics import Rectangle
@@ -22,6 +23,7 @@ ROW_HEIGHT = 100
 COL_WIDTH = 100
 SPACING_X = 10
 SPACING_Y = 10
+TYPE = ''
 
 Window.size = (400, 500)
 
@@ -68,7 +70,7 @@ def cell_pressed(instance, move, cell):
 
 def ai_cell_pressed(board, cells):
     ''' A.I. plays their move on the GUI'''
-    board.play_ai()
+    board.play_ai(TYPE)
     cell = board.get_ai_cell()
     cells[cell].background_disabled_normal = "assets/o-cell.png"
     cells[cell].background_disabled_down = "assets/o-cell-50.png"
@@ -102,6 +104,10 @@ def reset_released(instance, grid):
     game_status.text = "Game Status: {s}!".format(s="ONGOING")
     global move_history_pva
     move_history_pva = ""
+
+def type_released(instance, type):
+    TYPE = type
+    return
 
 # Creating all 9 buttons
 cells = np.array([Button(background_normal = "assets/empty-cell.png",
@@ -165,4 +171,23 @@ class Game(Screen, FloatLayout):
         
         self.resetbut.bind(on_release=lambda instance:\
                             reset_released(instance, self.ttt_grid))
-        self.add_widget(self.resetbut)
+        self.add_widget(self.resetbut)       
+
+        # Type button(s)
+        buts = np.array([Button(text=type[0], color = "#f5f7f8",
+                            outline_width=2, outline_color ="#3c808b",
+                            background_normal = "assets/button-icon.png",
+                            background_down = "assets/button-icon-down.png",
+                            size_hint=(None,None),
+                            size=(57,56))\
+                for type in ['RND','DFS','BFS','UCS']])
+
+        for i, obj in enumerate(buts):
+            obj.bind(on_release=partial(type_released, type=i))
+
+        self.typebox = BoxLayout(orientation='horizontal',
+                                 pos_hint={'center_x':0.71, 'center_y':0.5})
+        for widget in buts:
+            self.typebox.add_widget(widget)
+
+        self.add_widget(self.typebox)

@@ -1,12 +1,10 @@
-from scripts.ttt import MARK_O
-
 def analyse_board(board, cost=[10,10,10,
                                10,9,10,
                                10,10,10]):
     ''' Calculate cost of the whole board (adjacency)'''
     cost = cost
     for idx,value in enumerate(board.board):
-        if value == MARK_O:
+        if value == 2:
             # Rows
             if idx in (0,1,2):
                 cost[idx+3] -= 1
