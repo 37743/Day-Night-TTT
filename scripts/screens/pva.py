@@ -17,7 +17,7 @@ from kivy.graphics import Rectangle
 from scripts.ttt import (BOARD_X,BOARD_Y,BOARD_DIMENSIONS,state)
 from scripts.ttt import TTT
 from functools import partial
-# import sqlauth
+import sqlauth
 
 ROW_HEIGHT = 100
 COL_WIDTH = 100
@@ -36,19 +36,19 @@ Window.bind(on_resize = reSize)
 boardai = TTT()
 move_history_pva = ""
 
-# def insert_record(match_winner, match_history):
-#     ''' Inserts match results as a new entry to the SQL server'''
-#     sql = "INSERT INTO matches (date, p1_id, p2_id, match_winner, match_history) VALUES (CURRENT_TIMESTAMP, %s, %s, %s, %s)"
-#     val = (1, 2, match_winner, match_history)
-#     cursor = sqlauth.tttdb.cursor()
-#     cursor.execute(sql, val)
-#     sqlauth.tttdb.commit()
+def insert_record(match_winner, match_history):
+    ''' Inserts match results as a new entry to the SQL server'''
+    sql = "INSERT INTO matches (date, p1_id, p2_id, match_winner, match_history) VALUES (CURRENT_TIMESTAMP, %s, %s, %s, %s)"
+    val = (1, 2, match_winner, match_history)
+    cursor = sqlauth.tttdb.cursor()
+    cursor.execute(sql, val)
+    sqlauth.tttdb.commit()
 
-# def export_to_csv(filename="matches"):
-#     ''' Export matches table from the database into a comma separated file'''
-#     cursor = sqlauth.tttdb.cursor()
-#     cursor.execute("SELECT * FROM matches INTO OUTFILE '{f}.csv';".format(f=filename))
-#     sqlauth.tttdb.commit()
+def export_to_csv(filename="matches"):
+    ''' Export matches table from the database into a comma separated file'''
+    cursor = sqlauth.tttdb.cursor()
+    cursor.execute("SELECT * FROM matches INTO OUTFILE '{f}.csv';".format(f=filename))
+    sqlauth.tttdb.commit()
 
 def back_released(instance):
     ''' Back button method that moves the user to the main menu when called'''
@@ -61,8 +61,9 @@ def cell_pressed(instance, move, cell):
     cell.background_disabled_normal = "assets/x-cell.png"
     cell.background_disabled_down = "assets/x-cell-50.png"
     global move_history_pva
-    move_history_pva = move_history_pva + "{t}. P{p}".format(t=boardai.get_turn(pvp=False),\
-                            p=boardai.get_player(pvp=False)) + ":C{c} ".format(c=move)
+    # Player inverted since we play the move before adding to history.
+    move_history_pva = move_history_pva + "{t}. P{p}".format(t=boardai.get_turn(pvp=False)-1,\
+                            p=boardai.get_player(pvp=False, invert=True)) + ":C{c} ".format(c=move)
     cell.disabled = True
     # A.I. plays if game has not ended.
     if not(check_results(boardai, cells, move_history_pva)):
@@ -75,8 +76,9 @@ def ai_cell_pressed(board, cells):
     cells[cell].background_disabled_normal = "assets/o-cell.png"
     cells[cell].background_disabled_down = "assets/o-cell-50.png"
     global move_history_pva
-    move_history_pva = move_history_pva + "{t}. P{p}".format(t=boardai.get_turn(pvp=False),\
-                            p=boardai.get_player(pvp=False)) + ":C{c} ".format(c=cell)
+    # Player inverted since we play the move before adding to history.
+    move_history_pva = move_history_pva + "{t}. P{p}".format(t=boardai.get_turn(pvp=False)-1,\
+                            p=boardai.get_player(pvp=False, invert=True)) + ":C{c} ".format(c=cell)
     cells[cell].disabled = True
     check_results(board, cells, move_history_pva)
 
@@ -88,7 +90,7 @@ def check_results(boardai, cells, move_history_pva):
         game_status.text = "Game Status: {s}!".format(s=str(result))
         for widget in cells:
             widget.disabled = True
-        # insert_record(boardai.get_result(), move_history_pva)
+        insert_record(boardai.get_result(), move_history_pva)
         return True
     return False
 
