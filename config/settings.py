@@ -7,8 +7,8 @@
      needed to be used globally.
      In the event of failure, kindly refer to
      the version info stated in the deployed app.'''
-settings = {"version": "0.1.6",
-            "day": 21,
+settings = {"version": "0.9.2",
+            "day": 27,
             "month": 10,
             "year": 2023}
 
