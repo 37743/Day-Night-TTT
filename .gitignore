@@ -1,5 +1,5 @@
 Tic-Tac-Toe Server.session.sql
 .vscode
+__pycache__
 test.py
 sqlauth.py
-__pycache__/
