@@ -105,9 +105,12 @@ def reset_released(instance, grid):
     global move_history_pva
     move_history_pva = ""
 
-def type_released(instance, type):
+def type_released(instance, type, grid):
+    global TYPE
     TYPE = type
     ai_solve_mode.text = "Mode: {s}!".format(s=TYPE)
+    print('\n' + type + " PRESSED!")
+    reset_released(instance, grid)
     return
 
 # Creating all 9 buttons
@@ -185,13 +188,15 @@ class Game(Screen, FloatLayout):
                             background_down = "assets/button-icon-down.png",
                             size_hint=(None,None),
                             size=(57,56))\
-                for type in ['RND','DFS','BFS','UCS']])
+                for type in ['RND','DFS','BFS','UCS','GS']])
 
-        for i, obj in enumerate(buts):
-            obj.bind(on_release=partial(type_released, type=obj.text))
+        for obj in buts:
+            obj.bind(on_release=partial(type_released, type=obj.text, grid=self.ttt_grid))
 
         self.typebox = BoxLayout(orientation='horizontal',
-                                 pos_hint={'center_x':0.71, 'center_y':0.5})
+                                 size_hint=(1,1),
+                                 size=(400,56),
+                                 pos_hint={"center_x": .645, "center_y": 0.5})
         for widget in buts:
             self.typebox.add_widget(widget)
 
