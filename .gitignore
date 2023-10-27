@@ -2,3 +2,4 @@ Tic-Tac-Toe Server.session.sql
 .vscode
 test.py
 sqlauth.py
+__pycache__/
