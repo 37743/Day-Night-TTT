@@ -69,7 +69,7 @@ def cell_pressed(instance, move, cell):
         game_status.text = "Game Status: {s}!".format(s=str(result))
         for widget in cells:
             widget.disabled = True
-        # insert_record(board.get_result(), move_history_pvp)
+        insert_record(board.get_result(), move_history_pvp)
 
 def reset_released(instance, grid):
     ''' Resets the widgets on board back to empty cells'''

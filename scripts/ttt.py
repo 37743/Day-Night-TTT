@@ -13,6 +13,7 @@ AI_CELL = 0
 BOARD_X = 3
 BOARD_Y = 3
 BOARD_DIMENSIONS = (BOARD_X, BOARD_Y)
+
 # Current state of the game.
 state = {"DRAW" : 0,
         "X WON" : 1,
@@ -23,6 +24,7 @@ state = {"DRAW" : 0,
 MARK_EMPTY = 0
 MARK_X = 1
 MARK_O = 2
+
 # Current turn, X always starts first.
 TURN_PVP = 1
 TURN_PVA = 1
@@ -136,7 +138,6 @@ def gs_move(board, cost):
             best_move = idx
         min_value = min(min_value, cost[idx])
     # print(board.board)
-    print(min_value)
     return best_move
 
 def gs_optimal_move(board):
@@ -230,11 +231,15 @@ class TTT():
             return True
         return False
     
-    def get_player(self, pvp=True):
+    def get_player(self, pvp=True, invert=False):
         ''' Returns which player's turn'''
         # X always starts first
         turn = TURN_PVP if pvp else TURN_PVA
-        return MARK_X if (turn%2 != 0) else MARK_O
+        if invert:
+            player = MARK_O if (turn%2 != 0) else MARK_X
+        else:
+            player = MARK_O if (turn%2 == 0) else MARK_X
+        return player
     
     def get_turn(self, pvp=True):
         ''' Returns count of turns'''
@@ -268,7 +273,6 @@ class TTT():
         # It's O but its so I can change this later to reverse play order.
         # vvv
         self.board[aimove] = self.get_player(pvp=False)
-        # Turn gets incremented in the IRL player's code.
         pva_mod()
         return TTT(self.board)
             
