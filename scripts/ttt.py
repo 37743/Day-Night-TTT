@@ -27,6 +27,10 @@ MARK_O = 2
 TURN_PVP = 1
 TURN_PVA = 1
 
+COST = [1,1,1,
+        1,0,1,
+        1,1,1]
+
 empty_board = np.zeros(BOARD_DIMENSIONS, dtype = int).flatten()
 # print(empty_board)
 
@@ -71,7 +75,7 @@ def rand_optimal_move(board, cturn, depth=0):
     return bestmove
 
 def dfs_move(boards, cboard, cturn, best_move, pbest_move):
-    ''' Function for best move using Breadth-First-Search technique'''
+    ''' Function for best move using Depth-First-Search technique'''
     for mv in cboard.get_valid_indices():
         player = MARK_O if (cturn%2 ==0) else MARK_X
         cboard.board[mv] = player
@@ -80,6 +84,7 @@ def dfs_move(boards, cboard, cturn, best_move, pbest_move):
         temp_result = boards.top().get_result()
         pbest_move = dfs_move(boards, boards.top(), cturn, best_move, pbest_move)
         cboard.board[mv] = 0
+        # print(cboard.board)
         if (player==MARK_O and (temp_result==state['O WON']) or\
             (player==MARK_X and (temp_result==state['X WON']))):
             return mv
@@ -90,32 +95,29 @@ def dfs_move(boards, cboard, cturn, best_move, pbest_move):
     return pbest_move
 
 def dfs_optimal_move(board, cturn):
-    ''' Find the best optimal move using Breadth-First-Search technique'''
+    ''' Find the best optimal move using Depth-First-Search technique'''
     boards = stack.Stack()
     boards.push(board)
     best_move = dfs_move(boards, boards.top(), cturn, best_move=0, pbest_move=0)
     return best_move
 
-def bfs_move(boards, cboard, cturn, best_move, dmove=(0,0)):
+def bfs_move(boards, cboard, cturn, best_move):
     ''' Function for best move using Breadth-First-Search technique'''
-    dmove[0] += 1 # <- Depth counter
     for mv in cboard.get_valid_indices():
         player = MARK_O if (cturn%2 ==0) else MARK_X
         cboard.board[mv] = player
         boards.enqueue(cboard, mv)
-        if dmove[0] == 2: # At depth 2 are the child nodes of the current parent
-            dmove[1] = mv # <- Move is stored here
         cturn += 1
-        best_move = bfs_move(boards, boards.top(), cturn, best_move, dmove)
+        best_move = bfs_move(boards, boards.top(), cturn, best_move)
         cboard.board[mv] = 0
-        while not (boards.is_empty()): 
-            ''' T.A. NOTE: Everything in this current queue is popped until a win move is found
-             IF found, return the child of the top-most parent of the tree. (move to be made)'''
-            boards.dequeue() # Pops parent then checks for win condition.
-            temp_result = boards.top().get_result()
-            if (player==MARK_O and (temp_result==state['O WON']) or\
-                (player==MARK_X and (temp_result==state['X WON']))):
-                return dmove[1]
+    while not (boards.is_empty()): 
+        player = MARK_O if (cturn%2 ==0) else MARK_X
+        temp_result = boards.top().get_result()
+        if (player==MARK_O and (temp_result==state['O WON']) or\
+        (player==MARK_X and (temp_result==state['X WON']))):
+            return boards.dequeue()
+        # print(boards.top().board)
+        boards.dequeue()
     return best_move
 
 def bfs_optimal_move(board, cturn):
@@ -125,20 +127,52 @@ def bfs_optimal_move(board, cturn):
     best_move = bfs_move(boards, boards.top(), cturn, best_move=0)
     return best_move
 
-def ucs_move(board, cost):
-    ''' Function for best move using Uniform-Cost-Search technique'''
-    min_value = 999
+def gs_move(board, cost):
+    ''' Function for best move using Greedy-Search technique'''
+    min_value = 99
     best_move = 0
     for idx in board.get_valid_indices():
         if (cost[idx] < min_value):
             best_move = idx
         min_value = min(min_value, cost[idx])
+    # print(board.board)
+    print(min_value)
     return best_move
-            
-def ucs_optimal_move(board):
+
+def gs_optimal_move(board):
+    ''' Find the best optimal move using Greedy-Search technique'''
+    best_move = gs_move(board, analysis.analyse_board(board, COST))
+    return best_move
+
+def ucs_move(boards, cboard, cturn, best_move, min_value, cost):
+    ''' Function for best move using Uniform-Cost-Search technique'''
+    for mv in cboard.get_valid_indices():
+        player = MARK_O if (cturn%2 ==0) else MARK_X
+        cboard.board[mv] = player
+        boards.push(cboard, mv)
+        cturn += 1
+        temp_result = boards.top().get_result()
+        best_move = ucs_move(boards, boards.top(), cturn, best_move, min_value, cost)
+        cboard.board[mv] = 0
+        if (player==MARK_O and (temp_result==state['O WON']) or\
+            (player==MARK_X and (temp_result==state['X WON']))):
+            return mv
+    while not (boards.is_empty()):
+        cost = analysis.analyse_board(boards.top(), cost)
+        print(boards.top().board)
+        for mv in boards.top().get_valid_indices():
+            if (cost[mv] < min_value):
+                best_move = mv
+                min_value = cost[mv]
+        boards.pop()
+    return best_move
+
+def ucs_optimal_move(board, cturn):
     ''' Find the best optimal move using Uniform-Cost-Search technique'''
-    cost = analysis.analyse_board(board)
-    best_move = ucs_move(board, cost)
+    boards = stack.Stack()
+    boards.push(board)
+    best_move = ucs_move(boards, boards.top(), cturn, best_move=0,\
+                         min_value=99, cost=analysis.analyse_board(board, COST))
     return best_move
 
 class TTT():
@@ -222,10 +256,12 @@ class TTT():
             case 'DFS':
                 aimove = dfs_optimal_move(self, self.get_turn(pvp=False))
             case 'BFS':
-                aimove = rand_optimal_move(self, self.get_turn(pvp=False))
-            case 'UCS': # DEFAULT
-                aimove = ucs_optimal_move(self)
-            case _: # DEFAULT
+                aimove = bfs_optimal_move(self, self.get_turn(pvp=False))
+            case 'UCS': 
+                aimove = ucs_optimal_move(self, self.get_turn(pvp=False))
+            case 'GS':
+                aimove = gs_optimal_move(self)
+            case _: # DEFAULT (RND)
                 aimove = rand_optimal_move(self, self.get_turn(pvp=False))
         global AI_CELL
         AI_CELL = aimove
@@ -244,6 +280,10 @@ class TTT():
         ''' Reset to a blank board'''
         self.board = np.copy(empty_board)
         self.board_2d = self.board.reshape(BOARD_DIMENSIONS)
+        global COST
+        COST = [1,1,1,
+                1,0,1,
+                1,1,1]
         if (pvp):
             pvp_mod(reset=True)
         else:

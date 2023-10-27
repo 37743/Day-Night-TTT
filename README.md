@@ -1,3 +1,5 @@
+# T.A. Note:
+This is Yousef Gomaa's GitHub account.
 # Tic-tac-toe Project Snapshots:
 ## Main Menu:
 !["Main Menu"](https://github.com/37743/tictactoe/blob/main/snapshots/v0-1-6-menu.png?raw=true)

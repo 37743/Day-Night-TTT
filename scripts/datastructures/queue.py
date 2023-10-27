@@ -1,11 +1,16 @@
+# Yousef (Ibrahim) Gomaa - ID: 320210207
+# Egypt-Japan University of Science and Technology
+# Artificial Intelligence and Data Science Department
+# Queue Data Structure
+# ---
 class Node:
     def __init__(self, value, move=0):
         self.value = value
         self.move = move
         self.next = None
  
- 
 class Queue:
+    ''' Queue data structure'''
     def __init__(self):
         self.front = None
         self.size = 0

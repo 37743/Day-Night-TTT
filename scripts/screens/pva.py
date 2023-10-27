@@ -10,6 +10,7 @@ from kivy.core.window import Window
 from kivy.uix.screenmanager import Screen
 from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.gridlayout import GridLayout
+from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.button import Button
 from kivy.uix.image import Image
 from kivy.graphics import Rectangle
@@ -22,6 +23,7 @@ ROW_HEIGHT = 100
 COL_WIDTH = 100
 SPACING_X = 10
 SPACING_Y = 10
+TYPE = 'RND'
 
 Window.size = (400, 500)
 
@@ -68,7 +70,7 @@ def cell_pressed(instance, move, cell):
 
 def ai_cell_pressed(board, cells):
     ''' A.I. plays their move on the GUI'''
-    board.play_ai()
+    board.play_ai(TYPE)
     cell = board.get_ai_cell()
     cells[cell].background_disabled_normal = "assets/o-cell.png"
     cells[cell].background_disabled_down = "assets/o-cell-50.png"
@@ -103,6 +105,14 @@ def reset_released(instance, grid):
     global move_history_pva
     move_history_pva = ""
 
+def type_released(instance, type, grid):
+    global TYPE
+    TYPE = type
+    ai_solve_mode.text = "Mode: {s}!".format(s=TYPE)
+    print('\n' + type + " PRESSED!")
+    reset_released(instance, grid)
+    return
+
 # Creating all 9 buttons
 cells = np.array([Button(background_normal = "assets/empty-cell.png",
              background_disabled_normal = "assets/empty-cell.png")\
@@ -118,6 +128,9 @@ game_status = Label(text = "Game Status: {s}!".format(s="ONGOING"), color = "#f5
                                  bold = True, outline_width = 2.5, outline_color = "#3c808b",
                                  font_size = 18, pos = (0,210))
 
+ai_solve_mode = Label(text = "Mode: {s}!".format(s=TYPE), color = "#f5f7f8",
+                                 bold = True, outline_width = 2.5, outline_color = "#3c808b",
+                                 font_size = 18, pos = (0,230))
 class Game(Screen, FloatLayout):
     def _update_bg(self, instance, value):
         self.bg.pos = instance.pos
@@ -137,6 +150,7 @@ class Game(Screen, FloatLayout):
                                  pos=(0,-30))
         self.add_widget(self.grid_bg)
         self.add_widget(game_status)
+        self.add_widget(ai_solve_mode)
         self.ttt_grid = GridLayout(row_force_default = True, row_default_height = ROW_HEIGHT,
                                 col_force_default = True, col_default_width = COL_WIDTH,
                                 rows = BOARD_X, cols = BOARD_Y,
@@ -165,4 +179,25 @@ class Game(Screen, FloatLayout):
         
         self.resetbut.bind(on_release=lambda instance:\
                             reset_released(instance, self.ttt_grid))
-        self.add_widget(self.resetbut)
+        self.add_widget(self.resetbut)       
+
+        # Type button(s)
+        buts = np.array([Button(text=type, color = "#f5f7f8",
+                            outline_width=2, outline_color ="#3c808b",
+                            background_normal = "assets/button-icon.png",
+                            background_down = "assets/button-icon-down.png",
+                            size_hint=(None,None),
+                            size=(57,56))\
+                for type in ['RND','DFS','BFS','UCS','GS']])
+
+        for obj in buts:
+            obj.bind(on_release=partial(type_released, type=obj.text, grid=self.ttt_grid))
+
+        self.typebox = BoxLayout(orientation='horizontal',
+                                 size_hint=(1,1),
+                                 size=(400,56),
+                                 pos_hint={"center_x": .645, "center_y": 0.5})
+        for widget in buts:
+            self.typebox.add_widget(widget)
+
+        self.add_widget(self.typebox)
