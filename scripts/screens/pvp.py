@@ -16,7 +16,7 @@ from kivy.graphics import Rectangle
 from scripts.ttt import (BOARD_X,BOARD_Y,BOARD_DIMENSIONS,MARK_X,state)
 from scripts.ttt import TTT
 from functools import partial
-import sqlauth
+# import sqlauth
 
 ROW_HEIGHT = 100
 COL_WIDTH = 100
@@ -34,19 +34,19 @@ Window.bind(on_resize = reSize)
 board = TTT()
 move_history_pvp = ""
 
-def insert_record(match_winner, match_history):
-    ''' Inserts match results as a new entry to the SQL server'''
-    sql = "INSERT INTO matches (date, p1_id, p2_id, match_winner, match_history) VALUES (CURRENT_TIMESTAMP, %s, %s, %s, %s)"
-    val = (1, 2, match_winner, match_history)
-    cursor = sqlauth.tttdb.cursor()
-    cursor.execute(sql, val)
-    sqlauth.tttdb.commit()
+# def insert_record(match_winner, match_history):
+#     ''' Inserts match results as a new entry to the SQL server'''
+#     sql = "INSERT INTO matches (date, p1_id, p2_id, match_winner, match_history) VALUES (CURRENT_TIMESTAMP, %s, %s, %s, %s)"
+#     val = (1, 2, match_winner, match_history)
+#     cursor = sqlauth.tttdb.cursor()
+#     cursor.execute(sql, val)
+#     sqlauth.tttdb.commit()
 
-def export_to_csv(filename="matches"):
-    ''' Export matches table from the database into a comma separated file'''
-    cursor = sqlauth.tttdb.cursor()
-    cursor.execute("SELECT * FROM matches INTO OUTFILE '{f}.csv';".format(f=filename))
-    sqlauth.tttdb.commit()
+# def export_to_csv(filename="matches"):
+#     ''' Export matches table from the database into a comma separated file'''
+#     cursor = sqlauth.tttdb.cursor()
+#     cursor.execute("SELECT * FROM matches INTO OUTFILE '{f}.csv';".format(f=filename))
+#     sqlauth.tttdb.commit()
 
 def back_released(instance):
     App.get_running_app().screen_manager.current = "Main Menu"
@@ -69,7 +69,7 @@ def cell_pressed(instance, move, cell):
         game_status.text = "Game Status: {s}!".format(s=str(result))
         for widget in cells:
             widget.disabled = True
-        insert_record(board.get_result(), move_history_pvp)
+        # insert_record(board.get_result(), move_history_pvp)
 
 def reset_released(instance, grid):
     ''' Resets the widgets on board back to empty cells'''
