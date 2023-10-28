@@ -1,5 +1,8 @@
 # T.A. Note:
 This is Yousef Gomaa's GitHub account.  STUDENT ID: 320210207
+This project requires "Kivy" python package.
+Run "main.py" at root to launch the project.
+
 # Tic-tac-toe Project Snapshots:
 ## Main Menu:
 !["Main Menu"](https://github.com/37743/tictactoe/blob/main/snapshots/v0-1-6-menu.png?raw=true)
