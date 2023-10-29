@@ -14,6 +14,10 @@ BOARD_X = 3
 BOARD_Y = 3
 BOARD_DIMENSIONS = (BOARD_X, BOARD_Y)
 
+# ||| IDFS tree depth is stored here
+# vvv
+DEPTH = 0
+
 # Current state of the game.
 state = {"DRAW" : 0,
         "X WON" : 1,
@@ -52,6 +56,13 @@ def pva_mod(reset=False):
         TURN_PVA = 1
     else:
         TURN_PVA += 1
+
+def depth_mod(reset=False):
+    global DEPTH
+    if (reset):
+        DEPTH = 0
+    else:
+        DEPTH += 1
 
 def rand_optimal_move(board, cturn, depth=0):
     ''' Find the best possible move for the A.I. DEFAULT: RANDOM'''
@@ -129,8 +140,8 @@ def bfs_optimal_move(board, cturn):
     best_move = bfs_move(boards, boards.top(), cturn, best_move=0)
     return best_move
 
-def gs_move(board, cost):
-    ''' Function for best move using Greedy-Search technique'''
+def ucs_move(board, cost):
+    ''' Function for best move using Uniform-Cost-Search technique'''
     min_value = 99
     best_move = 0
     for idx in board.get_valid_indices():
@@ -140,20 +151,20 @@ def gs_move(board, cost):
     # print(board.board)
     return best_move
 
-def gs_optimal_move(board):
-    ''' Find the best optimal move using Greedy-Search technique'''
-    best_move = gs_move(board, analysis.analyse_board(board, COST))
+def ucs_optimal_move(board):
+    ''' Find the best optimal move using Uniform-Cost-Search technique'''
+    best_move = ucs_move(board, analysis.analyse_board(board, COST))
     return best_move
 
-def ucs_move(boards, cboard, cturn, best_move, min_value, cost):
-    ''' Function for best move using Uniform-Cost-Search technique'''
+def gs_move(boards, cboard, cturn, best_move, min_value, cost):
+    ''' Function for best move using Greedy-Search technique'''
     for mv in cboard.get_valid_indices():
         player = MARK_O if (cturn%2 ==0) else MARK_X
         cboard.board[mv] = player
-        boards.push(cboard, mv)
+        boards.enqueue(cboard, mv)
         cturn += 1
         temp_result = boards.top().get_result()
-        best_move = ucs_move(boards, boards.top(), cturn, best_move, min_value, cost)
+        best_move = gs_move(boards, boards.top(), cturn, best_move, min_value, cost)
         cboard.board[mv] = 0
         if (player==MARK_O and (temp_result==state['O WON']) or\
             (player==MARK_X and (temp_result==state['X WON']))):
@@ -165,15 +176,50 @@ def ucs_move(boards, cboard, cturn, best_move, min_value, cost):
             if (cost[mv] < min_value):
                 best_move = mv
                 min_value = cost[mv]
-        boards.pop()
+        boards.dequeue()
     return best_move
 
-def ucs_optimal_move(board, cturn):
-    ''' Find the best optimal move using Uniform-Cost-Search technique'''
-    boards = stack.Stack()
-    boards.push(board)
-    best_move = ucs_move(boards, boards.top(), cturn, best_move=0,\
+def gs_optimal_move(board, cturn):
+    ''' Find the best optimal move using Greedy-Search technique'''
+    boards = queue.Queue()
+    boards.enqueue(board)
+    best_move = gs_move(boards, boards.top(), cturn, best_move=0,\
                          min_value=99, cost=analysis.analyse_board(board, COST))
+    return best_move
+
+def ids_move(boards, cboard, cturn, best_move):
+    ''' Function for best move using Iterative-Depth-First-Search technique'''
+    # Breadth-First-Search for the first 3 levels.
+    global DEPTH
+    if (DEPTH < 3):
+        depth_mod()
+        for mv in cboard.get_valid_indices():
+            player = MARK_O if (cturn%2 ==0) else MARK_X
+            cboard.board[mv] = player
+            boards.enqueue(cboard, mv)
+            cturn += 1
+            best_move = ids_move(boards, boards.top(), cturn, best_move)
+            cboard.board[mv] = 0
+        while not (boards.is_empty()): 
+            player = MARK_O if (cturn%2 ==0) else MARK_X
+            temp_result = boards.top().get_result()
+            if (player==MARK_O and (temp_result==state['O WON']) or\
+            (player==MARK_X and (temp_result==state['X WON']))):
+                return boards.dequeue()
+            # print(boards.top().board)
+            boards.dequeue()
+        print(DEPTH)
+        return best_move
+    else:
+        # Proceed with Depth-First-Search if not found yet.
+        return dfs_optimal_move(cboard, cturn)
+
+def ids_optimal_move(board, cturn):
+    ''' Find the best optimal move using Iterative-Depth-First-Search technique'''
+    boards = queue.Queue()
+    boards.enqueue(board)
+    best_move = ids_move(boards, boards.top(), cturn, best_move=0)
+    depth_mod(reset=True)
     return best_move
 
 class TTT():
@@ -262,10 +308,12 @@ class TTT():
                 aimove = dfs_optimal_move(self, self.get_turn(pvp=False))
             case 'BFS':
                 aimove = bfs_optimal_move(self, self.get_turn(pvp=False))
+            case 'IDS':
+                aimove = ids_optimal_move(self)
             case 'UCS': 
-                aimove = ucs_optimal_move(self, self.get_turn(pvp=False))
+                aimove = ucs_optimal_move(self)
             case 'GS':
-                aimove = gs_optimal_move(self)
+                aimove = gs_optimal_move(self, self.get_turn(pvp=False))
             case _: # DEFAULT (RND)
                 aimove = rand_optimal_move(self, self.get_turn(pvp=False))
         global AI_CELL

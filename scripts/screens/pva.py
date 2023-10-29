@@ -17,7 +17,7 @@ from kivy.graphics import Rectangle
 from scripts.ttt import (BOARD_X,BOARD_Y,BOARD_DIMENSIONS,state)
 from scripts.ttt import TTT
 from functools import partial
-# import sqlauth
+import sqlauth
 
 ROW_HEIGHT = 100
 COL_WIDTH = 100
@@ -36,19 +36,19 @@ Window.bind(on_resize = reSize)
 boardai = TTT()
 move_history_pva = ""
 
-# def insert_record(match_winner, match_history):
-#     ''' Inserts match results as a new entry to the SQL server'''
-#     sql = "INSERT INTO matches (date, p1_id, p2_id, match_winner, match_history) VALUES (CURRENT_TIMESTAMP, %s, %s, %s, %s)"
-#     val = (1, 2, match_winner, match_history)
-#     cursor = sqlauth.tttdb.cursor()
-#     cursor.execute(sql, val)
-#     sqlauth.tttdb.commit()
+def insert_record(match_winner, match_history):
+    ''' Inserts match results as a new entry to the SQL server'''
+    sql = "INSERT INTO matches (date, p1_id, p2_id, match_winner, match_history) VALUES (CURRENT_TIMESTAMP, %s, %s, %s, %s)"
+    val = (1, 2, match_winner, match_history)
+    cursor = sqlauth.tttdb.cursor()
+    cursor.execute(sql, val)
+    sqlauth.tttdb.commit()
 
-# def export_to_csv(filename="matches"):
-#     ''' Export matches table from the database into a comma separated file'''
-#     cursor = sqlauth.tttdb.cursor()
-#     cursor.execute("SELECT * FROM matches INTO OUTFILE '{f}.csv';".format(f=filename))
-#     sqlauth.tttdb.commit()
+def export_to_csv(filename="matches"):
+    ''' Export matches table from the database into a comma separated file'''
+    cursor = sqlauth.tttdb.cursor()
+    cursor.execute("SELECT * FROM matches INTO OUTFILE '{f}.csv';".format(f=filename))
+    sqlauth.tttdb.commit()
 
 def back_released(instance):
     ''' Back button method that moves the user to the main menu when called'''
@@ -90,7 +90,7 @@ def check_results(boardai, cells, move_history_pva):
         game_status.text = "Game Status: {s}!".format(s=str(result))
         for widget in cells:
             widget.disabled = True
-        # insert_record(boardai.get_result(), move_history_pva)
+        insert_record(boardai.get_result(), move_history_pva)
         return True
     return False
 
@@ -190,7 +190,7 @@ class Game(Screen, FloatLayout):
                             background_down = "assets/button-icon-down.png",
                             size_hint=(None,None),
                             size=(57,56))\
-                for type in ['RND','DFS','BFS','UCS','GS']])
+                for type in ['RND','DFS','BFS','IDS','UCS','GS']])
 
         for obj in buts:
             obj.bind(on_release=partial(type_released, type=obj.text, grid=self.ttt_grid))
@@ -198,7 +198,7 @@ class Game(Screen, FloatLayout):
         self.typebox = BoxLayout(orientation='horizontal',
                                  size_hint=(1,1),
                                  size=(400,56),
-                                 pos_hint={"center_x": .645, "center_y": 0.5})
+                                 pos_hint={"center_x": .575, "center_y": 0.5})
         for widget in buts:
             self.typebox.add_widget(widget)
 
