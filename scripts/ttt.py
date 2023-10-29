@@ -65,7 +65,7 @@ def depth_mod(reset=False):
         DEPTH += 1
 
 def rand_optimal_move(board, cturn, depth=0):
-    ''' Find the best possible move for the A.I. DEFAULT: RANDOM'''
+    ''' Find the winning move after a few random moves for the A.I. WARNING: RANDOM'''
     bestmove = np.random.choice(board.get_valid_indices(), 1)[0]
     if (depth<10):
         for move in board.get_valid_indices():
@@ -309,7 +309,7 @@ class TTT():
             case 'BFS':
                 aimove = bfs_optimal_move(self, self.get_turn(pvp=False))
             case 'IDS':
-                aimove = ids_optimal_move(self)
+                aimove = ids_optimal_move(self, self.get_turn(pvp=False))
             case 'UCS': 
                 aimove = ucs_optimal_move(self)
             case 'GS':
